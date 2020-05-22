@@ -36,7 +36,7 @@ func New(client client.Client) prometheus.Collector {
 		client: client,
 		up: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, "", "up"),
-			"Couchbase task API is responding",
+			"Presto API is responding",
 			nil,
 			nil,
 		),
