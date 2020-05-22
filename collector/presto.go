@@ -1,0 +1,141 @@
+package collector
+
+import (
+	"sync"
+	"time"
+
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/common/log"
+	"github.com/totvslabs/presto-exporter/client"
+)
+
+const namespace = "presto_cluster"
+
+type prestoCollector struct {
+	mutex  sync.Mutex
+	client client.Client
+
+	up               *prometheus.Desc
+	scrapeDuration   *prometheus.Desc
+	runningQueries   *prometheus.Desc
+	blockedQueries   *prometheus.Desc
+	queuedQueries    *prometheus.Desc
+	activeWorkers    *prometheus.Desc
+	runningDrivers   *prometheus.Desc
+	reservedMemory   *prometheus.Desc
+	totalInputRows   *prometheus.Desc
+	totalInputBytes  *prometheus.Desc
+	totalCPUTimeSecs *prometheus.Desc
+}
+
+// New presto collector
+func New(client client.Client) prometheus.Collector {
+	const subsystem = "task"
+	// nolint: lll
+	return &prestoCollector{
+		client: client,
+		up: prometheus.NewDesc(
+			prometheus.BuildFQName(namespace, "", "up"),
+			"Couchbase task API is responding",
+			nil,
+			nil,
+		),
+		scrapeDuration: prometheus.NewDesc(
+			prometheus.BuildFQName(namespace, "", "scrape_duration_seconds"),
+			"Scrape duration in seconds",
+			nil,
+			nil,
+		),
+		runningQueries: prometheus.NewDesc(
+			prometheus.BuildFQName(namespace, "", "running_queries"),
+			"Running requests of the presto cluster.",
+			nil, nil,
+		),
+		blockedQueries: prometheus.NewDesc(
+			prometheus.BuildFQName(namespace, "", "blocked_queries"),
+			"Blocked queries of the presto cluster.",
+			nil, nil,
+		),
+		queuedQueries: prometheus.NewDesc(
+			prometheus.BuildFQName(namespace, "", "queued_queries"),
+			"Queued queries of the presto cluster.",
+			nil, nil,
+		),
+		activeWorkers: prometheus.NewDesc(
+			prometheus.BuildFQName(namespace, "", "active_workers"),
+			"Active workers of the presto cluster.",
+			nil, nil,
+		),
+		runningDrivers: prometheus.NewDesc(
+			prometheus.BuildFQName(namespace, "", "running_drivers"),
+			"Running drivers of the presto cluster.",
+			nil, nil,
+		),
+		reservedMemory: prometheus.NewDesc(
+			prometheus.BuildFQName(namespace, "", "reserved_memory_bytes"),
+			"Reserved memory of the presto cluster.",
+			nil, nil,
+		),
+		totalInputRows: prometheus.NewDesc(
+			prometheus.BuildFQName(namespace, "", "input_rows_total"),
+			"Total input rows of the presto cluster.",
+			nil, nil,
+		),
+		totalInputBytes: prometheus.NewDesc(
+			prometheus.BuildFQName(namespace, "", "input_bytes_total"),
+			"Total input bytes of the presto cluster.",
+			nil, nil,
+		),
+		totalCPUTimeSecs: prometheus.NewDesc(
+			prometheus.BuildFQName(namespace, "", "cpu_secons_total"),
+			"Total CPU time of the presto cluster.",
+			nil, nil,
+		),
+	}
+}
+
+// Describe all metrics
+func (c *prestoCollector) Describe(ch chan<- *prometheus.Desc) {
+	ch <- c.up
+	ch <- c.scrapeDuration
+	ch <- c.runningQueries
+	ch <- c.blockedQueries
+	ch <- c.queuedQueries
+	ch <- c.activeWorkers
+	ch <- c.runningDrivers
+	ch <- c.reservedMemory
+	ch <- c.totalInputRows
+	ch <- c.totalInputBytes
+	ch <- c.totalCPUTimeSecs
+}
+
+// Collect all metrics
+func (c *prestoCollector) Collect(ch chan<- prometheus.Metric) {
+	var start = time.Now()
+	defer func() {
+		ch <- prometheus.MustNewConstMetric(c.scrapeDuration, prometheus.GaugeValue, time.Since(start).Seconds())
+	}()
+
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
+	log.Info("Collecting metrics...")
+
+	metrics, err := c.client.Get()
+	if err != nil {
+		ch <- prometheus.MustNewConstMetric(c.up, prometheus.GaugeValue, 0)
+		log.With("error", err).Error("failed to scrape tasks")
+		return
+	}
+
+	ch <- prometheus.MustNewConstMetric(c.up, prometheus.GaugeValue, 1)
+	ch <- prometheus.MustNewConstMetric(c.runningQueries, prometheus.GaugeValue, metrics.RunningQueries)
+	ch <- prometheus.MustNewConstMetric(c.blockedQueries, prometheus.GaugeValue, metrics.BlockedQueries)
+	ch <- prometheus.MustNewConstMetric(c.queuedQueries, prometheus.GaugeValue, metrics.QueuedQueries)
+	ch <- prometheus.MustNewConstMetric(c.activeWorkers, prometheus.GaugeValue, metrics.ActiveWorkers)
+	ch <- prometheus.MustNewConstMetric(c.runningDrivers, prometheus.GaugeValue, metrics.RunningDrivers)
+	ch <- prometheus.MustNewConstMetric(c.reservedMemory, prometheus.GaugeValue, metrics.ReservedMemory)
+	ch <- prometheus.MustNewConstMetric(c.totalInputRows, prometheus.CounterValue, metrics.TotalInputRows)
+	ch <- prometheus.MustNewConstMetric(c.totalInputBytes, prometheus.CounterValue, metrics.TotalInputBytes)
+	ch <- prometheus.MustNewConstMetric(c.totalCPUTimeSecs, prometheus.CounterValue, metrics.TotalCPUTimeSecs)
+}
