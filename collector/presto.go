@@ -37,14 +37,12 @@ func New(client client.Client) prometheus.Collector {
 		up: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, "", "up"),
 			"Presto API is responding",
-			nil,
-			nil,
+			nil, nil,
 		),
 		scrapeDuration: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, "", "scrape_duration_seconds"),
 			"Scrape duration in seconds",
-			nil,
-			nil,
+			nil, nil,
 		),
 		runningQueries: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, "", "running_queries"),
@@ -87,7 +85,7 @@ func New(client client.Client) prometheus.Collector {
 			nil, nil,
 		),
 		totalCPUTimeSecs: prometheus.NewDesc(
-			prometheus.BuildFQName(namespace, "", "cpu_secons_total"),
+			prometheus.BuildFQName(namespace, "", "cpu_seconds_total"),
 			"Total CPU time of the presto cluster.",
 			nil, nil,
 		),
