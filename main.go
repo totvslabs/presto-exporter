@@ -19,7 +19,7 @@ var (
 	app           = kingpin.New("presto-exporter", "exports presto metrics in the prometheus format")
 	listenAddress = app.Flag("web.listen-address", "Address to listen on for web interface and telemetry").Default("127.0.0.1:9430").String()
 	metricsPath   = app.Flag("web.telemetry-path", "Path under which to expose metrics").Default("/metrics").String()
-	prestoURL     = app.Flag("presto.url", "Presto URL to scrape").Default("http://localhost:8080/v1/cluster").String()
+	prestoURL     = app.Flag("presto.url", "Presto URL to scrape").Default("http://localhost:8080/v1").String()
 )
 
 func main() {
@@ -31,7 +31,7 @@ func main() {
 	log.Infof("starting presto-exporter %s...", version)
 
 	var client = client.New(*prestoURL)
-	prometheus.MustRegister(collector.New(client))
+	prometheus.MustRegister(collector.NewCluster(client))
 
 	http.Handle(*metricsPath, promhttp.Handler())
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {

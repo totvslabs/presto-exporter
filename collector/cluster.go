@@ -9,9 +9,7 @@ import (
 	"github.com/totvslabs/presto-exporter/client"
 )
 
-const namespace = "presto_cluster"
-
-type prestoCollector struct {
+type clusterCollector struct {
 	mutex  sync.Mutex
 	client client.Client
 
@@ -28,11 +26,12 @@ type prestoCollector struct {
 	totalCPUTimeSecs *prometheus.Desc
 }
 
-// New presto collector
-func New(client client.Client) prometheus.Collector {
+// NewCluster presto collector
+func NewCluster(client client.Client) prometheus.Collector {
+	const namespace = "presto_cluster"
 	const subsystem = "task"
 	// nolint: lll
-	return &prestoCollector{
+	return &clusterCollector{
 		client: client,
 		up: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, "", "up"),
@@ -93,7 +92,7 @@ func New(client client.Client) prometheus.Collector {
 }
 
 // Describe all metrics
-func (c *prestoCollector) Describe(ch chan<- *prometheus.Desc) {
+func (c *clusterCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- c.up
 	ch <- c.scrapeDuration
 	ch <- c.runningQueries
@@ -108,7 +107,7 @@ func (c *prestoCollector) Describe(ch chan<- *prometheus.Desc) {
 }
 
 // Collect all metrics
-func (c *prestoCollector) Collect(ch chan<- prometheus.Metric) {
+func (c *clusterCollector) Collect(ch chan<- prometheus.Metric) {
 	var start = time.Now()
 	defer func() {
 		ch <- prometheus.MustNewConstMetric(c.scrapeDuration, prometheus.GaugeValue, time.Since(start).Seconds())
@@ -117,9 +116,9 @@ func (c *prestoCollector) Collect(ch chan<- prometheus.Metric) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
-	log.Info("Collecting metrics...")
+	log.Info("Collecting cluster metrics...")
 
-	metrics, err := c.client.Get()
+	metrics, err := c.client.Cluster()
 	if err != nil {
 		ch <- prometheus.MustNewConstMetric(c.up, prometheus.GaugeValue, 0)
 		log.With("error", err).Error("failed to scrape tasks")
