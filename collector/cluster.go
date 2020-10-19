@@ -28,63 +28,62 @@ type clusterCollector struct {
 
 // NewCluster presto collector
 func NewCluster(client client.Client) prometheus.Collector {
-	const namespace = "presto_cluster"
-	const subsystem = "task"
+	const subsystem = "cluster"
 	// nolint: lll
 	return &clusterCollector{
 		client: client,
 		up: prometheus.NewDesc(
-			prometheus.BuildFQName(namespace, "", "up"),
+			prometheus.BuildFQName(ns, subsystem, "up"),
 			"Presto API is responding",
 			nil, nil,
 		),
 		scrapeDuration: prometheus.NewDesc(
-			prometheus.BuildFQName(namespace, "", "scrape_duration_seconds"),
+			prometheus.BuildFQName(ns, subsystem, "scrape_duration_seconds"),
 			"Scrape duration in seconds",
 			nil, nil,
 		),
 		runningQueries: prometheus.NewDesc(
-			prometheus.BuildFQName(namespace, "", "running_queries"),
+			prometheus.BuildFQName(ns, subsystem, "running_queries"),
 			"Running requests of the presto cluster.",
 			nil, nil,
 		),
 		blockedQueries: prometheus.NewDesc(
-			prometheus.BuildFQName(namespace, "", "blocked_queries"),
+			prometheus.BuildFQName(ns, subsystem, "blocked_queries"),
 			"Blocked queries of the presto cluster.",
 			nil, nil,
 		),
 		queuedQueries: prometheus.NewDesc(
-			prometheus.BuildFQName(namespace, "", "queued_queries"),
+			prometheus.BuildFQName(ns, subsystem, "queued_queries"),
 			"Queued queries of the presto cluster.",
 			nil, nil,
 		),
 		activeWorkers: prometheus.NewDesc(
-			prometheus.BuildFQName(namespace, "", "active_workers"),
+			prometheus.BuildFQName(ns, subsystem, "active_workers"),
 			"Active workers of the presto cluster.",
 			nil, nil,
 		),
 		runningDrivers: prometheus.NewDesc(
-			prometheus.BuildFQName(namespace, "", "running_drivers"),
+			prometheus.BuildFQName(ns, subsystem, "running_drivers"),
 			"Running drivers of the presto cluster.",
 			nil, nil,
 		),
 		reservedMemory: prometheus.NewDesc(
-			prometheus.BuildFQName(namespace, "", "reserved_memory_bytes"),
+			prometheus.BuildFQName(ns, subsystem, "reserved_memory_bytes"),
 			"Reserved memory of the presto cluster.",
 			nil, nil,
 		),
 		totalInputRows: prometheus.NewDesc(
-			prometheus.BuildFQName(namespace, "", "input_rows_total"),
+			prometheus.BuildFQName(ns, subsystem, "input_rows_total"),
 			"Total input rows of the presto cluster.",
 			nil, nil,
 		),
 		totalInputBytes: prometheus.NewDesc(
-			prometheus.BuildFQName(namespace, "", "input_bytes_total"),
+			prometheus.BuildFQName(ns, subsystem, "input_bytes_total"),
 			"Total input bytes of the presto cluster.",
 			nil, nil,
 		),
 		totalCPUTimeSecs: prometheus.NewDesc(
-			prometheus.BuildFQName(namespace, "", "cpu_seconds_total"),
+			prometheus.BuildFQName(ns, subsystem, "cpu_seconds_total"),
 			"Total CPU time of the presto cluster.",
 			nil, nil,
 		),

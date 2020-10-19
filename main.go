@@ -31,7 +31,10 @@ func main() {
 	log.Infof("starting presto-exporter %s...", version)
 
 	var client = client.New(*prestoURL)
-	prometheus.MustRegister(collector.NewCluster(client))
+	prometheus.MustRegister(
+		collector.NewCluster(client),
+		collector.NewQuery(client),
+	)
 
 	http.Handle(*metricsPath, promhttp.Handler())
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
