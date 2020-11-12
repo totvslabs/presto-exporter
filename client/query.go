@@ -13,6 +13,7 @@ import (
 // Query gets presto query metrics
 func (c Client) Query() ([]QueryMetric, error) {
 	var metrics []QueryMetric
+
 	url, err := c.withPath("query")
 	if err != nil {
 		return metrics, errors.Wrap(err, "failed to get query path")
@@ -43,6 +44,11 @@ type QueryMetric struct {
 	ResourceGroupID []string   `json:"resourceGroupId"`
 	State           string     `json:"state"`
 	QueryStats      QueryStats `json:"queryStats"`
+	ErrorCode       ErrorCode  `json:"errorCode"`
+}
+
+type ErrorCode struct {
+	Type string `json:"type"`
 }
 
 // QueryStats is the stats of a single query execution
