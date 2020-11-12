@@ -11,9 +11,8 @@ import (
 )
 
 type queryCollector struct {
-	mutex  sync.Mutex
-	client client.Client
-
+	mutex          sync.Mutex
+	client         client.Client
 	up             *prometheus.Desc
 	scrapeDuration *prometheus.Desc
 	queueTime      *prometheus.Desc
@@ -104,8 +103,11 @@ func (c *queryCollector) Collect(ch chan<- prometheus.Metric) {
 		m.elapsed += time.Duration(query.QueryStats.ElapsedTime)
 		m.execution += time.Duration(query.QueryStats.ExecutionTime)
 		durations[group] = m
-
-		states[query.State]++
+		if query.ErrorCode.Type == "USER_ERROR" {
+			states["USER_ERROR"]++
+		} else {
+			states[query.State]++
+		}
 	}
 
 	for k, v := range durations {
