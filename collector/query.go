@@ -11,9 +11,8 @@ import (
 )
 
 type queryCollector struct {
-	mutex  sync.Mutex
-	client client.Client
-
+	mutex          sync.Mutex
+	client         client.Client
 	up             *prometheus.Desc
 	scrapeDuration *prometheus.Desc
 	queueTime      *prometheus.Desc
